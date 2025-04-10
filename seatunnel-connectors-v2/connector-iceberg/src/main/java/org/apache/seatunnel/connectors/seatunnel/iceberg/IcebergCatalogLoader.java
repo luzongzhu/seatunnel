@@ -19,9 +19,9 @@ package org.apache.seatunnel.connectors.seatunnel.iceberg;
 
 import org.apache.seatunnel.shade.com.google.common.collect.ImmutableList;
 
-import org.apache.seatunnel.common.exception.CommonErrorCode;
 import org.apache.seatunnel.common.utils.SeaTunnelException;
 import org.apache.seatunnel.connectors.seatunnel.iceberg.config.CommonConfig;
+import org.apache.seatunnel.connectors.seatunnel.iceberg.exception.IcebergConnectorErrorCode;
 import org.apache.seatunnel.connectors.seatunnel.iceberg.exception.IcebergConnectorException;
 
 import org.apache.commons.lang.StringUtils;
@@ -149,7 +149,7 @@ public class IcebergCatalogLoader implements Serializable {
                 doKerberosAuthentication(configuration, kerberosPrincipal, kerberosKeytabPath);
             } catch (Exception e) {
                 throw new IcebergConnectorException(
-                        CommonErrorCode.KERBEROS_AUTHORIZED_FAILED,
+                        IcebergConnectorErrorCode.KERBEROS_AUTHORIZED_FAILED,
                         String.format("Kerberos authentication failed: %s", e.getMessage()));
             }
         } else {
