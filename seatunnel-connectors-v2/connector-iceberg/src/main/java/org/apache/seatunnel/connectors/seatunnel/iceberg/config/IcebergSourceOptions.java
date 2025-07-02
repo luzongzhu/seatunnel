@@ -76,4 +76,10 @@ public class IcebergSourceOptions extends IcebergCommonOptions {
                     .longType()
                     .defaultValue(2000L)
                     .withDescription(" the interval of increment scan(mills)");
+
+    public static final Option<String> TABLE_DATA_FILTER =
+            Options.key("table_data_filter")
+                    .stringType()
+                    .noDefaultValue()
+                    .withDescription(" the filter of iceberg table data");
 }

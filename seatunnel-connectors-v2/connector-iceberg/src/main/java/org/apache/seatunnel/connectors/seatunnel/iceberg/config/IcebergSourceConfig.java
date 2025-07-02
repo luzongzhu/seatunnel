@@ -45,6 +45,8 @@ public class IcebergSourceConfig extends IcebergCommonConfig {
                     SourceTableConfig.builder()
                             .namespace(this.getNamespace())
                             .table(this.getTable())
+                            .filterWhereSql(
+                                    readonlyConfig.get(IcebergSourceOptions.TABLE_DATA_FILTER))
                             .startSnapshotTimestamp(
                                     readonlyConfig.get(
                                             IcebergSourceOptions.KEY_START_SNAPSHOT_TIMESTAMP))

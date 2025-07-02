@@ -29,6 +29,8 @@ import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.delete.Delete;
+import net.sf.jsqlparser.statement.select.PlainSelect;
+import net.sf.jsqlparser.statement.select.Select;
 
 public class ExpressionUtilsTest {
 
@@ -119,6 +121,109 @@ public class ExpressionUtilsTest {
                         Types.NestedField.optional(2, "f2", Types.TimeType.get()),
                         Types.NestedField.optional(3, "f3", Types.TimestampType.withoutZone()));
         expression = ExpressionUtils.convert(delete.getWhere(), schema);
+
+        Assertions.assertEquals(
+                Expressions.and(
+                                Expressions.equal("f1", 19723),
+                                Expressions.equal("f2", 43200001000L),
+                                Expressions.equal("f3", 1704110400001000L))
+                        .toString(),
+                expression.toString());
+    }
+
+    @Test
+    public void testWhereSqlToExpression() throws JSQLParserException {
+        String sql = "push_time >= '2025-04-01'";
+
+        Expression expression = ExpressionUtils.convertWhereSQL(sql);
+        Assertions.assertEquals(Expressions.greaterThanOrEqual("push_time", "2025-04-01").toString(), expression.toString());
+
+        sql = "id = 1";
+
+        expression = ExpressionUtils.convertWhereSQL(sql);
+        Assertions.assertEquals(Expressions.equal("id", 1).toString(), expression.toString());
+
+        sql = "id != 1";
+        expression = ExpressionUtils.convertWhereSQL(sql);
+
+        Assertions.assertEquals(Expressions.notEqual("id", 1).toString(), expression.toString());
+
+        sql = "id > 1";
+        expression = ExpressionUtils.convertWhereSQL(sql);
+
+        Assertions.assertEquals(Expressions.greaterThan("id", 1).toString(), expression.toString());
+
+        sql = "id >= 1";
+        expression = ExpressionUtils.convertWhereSQL(sql);
+
+        Assertions.assertEquals(
+                Expressions.greaterThanOrEqual("id", 1).toString(), expression.toString());
+
+        sql = "id < 1";
+        expression = ExpressionUtils.convertWhereSQL(sql);
+
+        Assertions.assertEquals(Expressions.lessThan("id", 1).toString(), expression.toString());
+
+        sql = "id <= 1";
+        expression = ExpressionUtils.convertWhereSQL(sql);
+
+        Assertions.assertEquals(
+                Expressions.lessThanOrEqual("id", 1).toString(), expression.toString());
+
+        sql = "id is null";
+        expression = ExpressionUtils.convertWhereSQL(sql);
+
+        Assertions.assertEquals(Expressions.isNull("id").toString(), expression.toString());
+
+        sql = "id is not null";
+        expression = ExpressionUtils.convertWhereSQL(sql);
+
+        Assertions.assertEquals(Expressions.notNull("id").toString(), expression.toString());
+
+        sql = "id in (1,2,3)";
+        expression = ExpressionUtils.convertWhereSQL(sql);
+
+        Assertions.assertEquals(Expressions.in("id", 1, 2, 3).toString(), expression.toString());
+
+        sql = "id not in (1,2,3)";
+        expression = ExpressionUtils.convertWhereSQL(sql);
+
+        Assertions.assertEquals(Expressions.notIn("id", 1, 2, 3).toString(), expression.toString());
+
+        sql = "id is true";
+        expression = ExpressionUtils.convertWhereSQL(sql);
+
+        Assertions.assertEquals(Expressions.equal("id", true).toString(), expression.toString());
+
+        sql = "id = 1 and name = a or (age >=1 and age < 1)";
+        expression = ExpressionUtils.convertWhereSQL(sql);
+
+        Assertions.assertEquals(
+                Expressions.or(
+                                Expressions.and(
+                                        Expressions.equal("id", 1), Expressions.equal("name", "a")),
+                                Expressions.and(
+                                        Expressions.greaterThanOrEqual("age", 1),
+                                        Expressions.lessThan("age", 1)))
+                        .toString(),
+                expression.toString());
+
+        sql = "id = 'a'";
+        expression = ExpressionUtils.convertWhereSQL(sql);
+
+        Assertions.assertEquals(Expressions.equal("id", "a").toString(), expression.toString());
+
+        String whereSql =
+                "f1 = '2024-01-01' and f2 = '12:00:00.001' and f3 = '2024-01-01 12:00:00.001'";
+        sql = "SELECT * FROM table WHERE " + whereSql;
+        Select select = (Select) CCJSqlParserUtil.parse(sql);
+        PlainSelect plainSelect = select.getPlainSelect();
+        Schema schema =
+                new Schema(
+                        Types.NestedField.optional(1, "f1", Types.DateType.get()),
+                        Types.NestedField.optional(2, "f2", Types.TimeType.get()),
+                        Types.NestedField.optional(3, "f3", Types.TimestampType.withoutZone()));
+        expression = ExpressionUtils.convert(plainSelect.getWhere(), schema);
 
         Assertions.assertEquals(
                 Expressions.and(

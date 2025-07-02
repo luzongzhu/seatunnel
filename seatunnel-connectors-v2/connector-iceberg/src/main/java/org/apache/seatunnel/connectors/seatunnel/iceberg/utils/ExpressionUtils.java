@@ -44,6 +44,8 @@ import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.delete.Delete;
+import net.sf.jsqlparser.statement.select.PlainSelect;
+import net.sf.jsqlparser.statement.select.Select;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -70,6 +72,14 @@ public class ExpressionUtils {
         Statement statement = CCJSqlParserUtil.parse(sql);
         Delete delete = (Delete) statement;
         return convert(delete.getWhere(), null);
+    }
+
+    public static Expression convertWhereSQL(String whereSql) throws JSQLParserException {
+        // 构建一个虚拟的 SELECT 语句来包含 WHERE 子句
+        String sql = "SELECT * FROM table WHERE " + whereSql;
+        Select select = (Select) CCJSqlParserUtil.parse(sql);
+        PlainSelect plainSelect = select.getPlainSelect();
+        return convert(plainSelect.getWhere(), null);
     }
 
     public static Expression convert(net.sf.jsqlparser.expression.Expression condition) {

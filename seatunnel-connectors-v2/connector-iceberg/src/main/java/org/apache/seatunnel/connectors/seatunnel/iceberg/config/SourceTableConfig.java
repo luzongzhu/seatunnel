@@ -21,6 +21,7 @@ package org.apache.seatunnel.connectors.seatunnel.iceberg.config;
 
 import org.apache.seatunnel.api.table.catalog.TablePath;
 import org.apache.seatunnel.connectors.seatunnel.iceberg.source.enumerator.scan.IcebergStreamScanStrategy;
+import org.apache.seatunnel.connectors.seatunnel.iceberg.utils.ExpressionUtils;
 import org.apache.seatunnel.connectors.seatunnel.iceberg.utils.SchemaUtils;
 
 import org.apache.iceberg.catalog.TableIdentifier;
@@ -51,6 +52,7 @@ public class SourceTableConfig implements Serializable {
 
     private IcebergStreamScanStrategy streamScanStrategy = KEY_STREAM_SCAN_STRATEGY.defaultValue();
     private Expression filter;
+    private String filterWhereSql; // 添加过滤条件字符串字段
     private Long splitSize;
     private Integer splitLookback;
     private Long splitOpenFileCost;
@@ -77,5 +79,16 @@ public class SourceTableConfig implements Serializable {
     public SourceTableConfig setNamespace(String namespace) {
         this.namespace = namespace;
         return this;
+    }
+
+    public Expression getFilter() {
+        if (filterWhereSql != null) {
+            try {
+                filter = ExpressionUtils.convertWhereSQL(filterWhereSql);
+            } catch (Exception e) {
+                throw new RuntimeException("Invalid filter expression: " + filterWhereSql, e);
+            }
+        }
+        return filter;
     }
 }
